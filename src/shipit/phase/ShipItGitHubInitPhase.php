@@ -83,7 +83,9 @@ final class ShipItGitHubInitPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $class = $this->githubUtils;
     $local_path = $this->side === ShipItRepoSide::SOURCE
       ? $manifest->getSourcePath()

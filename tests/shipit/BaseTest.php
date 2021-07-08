@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Vec};
+use namespace HH\Lib\{Vec}; // @oss-enable
 
 abstract class BaseTest extends \Facebook\HackTest\HackTest { // @oss-enable
 // @oss-disable: abstract class BaseTest extends \WWWTest {

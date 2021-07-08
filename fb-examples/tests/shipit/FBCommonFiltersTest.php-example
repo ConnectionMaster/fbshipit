@@ -12,14 +12,14 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 
 
 <<\Oncalls('open_source')>>
 final class FBCommonFiltersTest extends FBBaseTest {
   private static function getKeepSections(): keyset<string> {
     return keyset(
-      \opensource_shipit_configs_CONSTANTS::DEFAULT_MESSAGE_SECTION_NAMES,
+      Config\shipit_configs_CONSTANTS::DEFAULT_MESSAGE_SECTION_NAMES,
     );
   }
 
@@ -236,6 +236,29 @@ Differential Revision: D1234567',
       )->getMessage(),
     )
       ->toBePHPEqual('Summary: One line change');
+  }
+
+  public function testMultipleSummarySections(): void {
+    $changeset = (new ShipItChangeset())
+      ->withMessage(
+        "Summary:\nthe first\n".
+        "Summary:\nthe second\n".
+        "Closes https://github.com/facebook/fbshipit/pull/42\n".
+        "Github author: gh_author@fb.com\n".
+        "Test plan: run all code paths\n",
+      );
+
+    \expect(
+      FBCommonFilters::applyAll(
+        $changeset,
+        shape('filterMessageSections/keepFields' => self::getKeepSections()),
+      )->getMessage(),
+    )
+      ->toBePHPEqual(
+        "Summary:\nthe first\nthe second\n".
+        "Closes https://github.com/facebook/fbshipit/pull/42\n\n".
+        "Test Plan: run all code paths",
+      );
   }
 
   public function testTestPlanSectionRetainedForImportedPRs(): void {

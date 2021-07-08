@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 
 final class ShipItDeleteCorruptedRepoPhase extends ShipItPhase {
   public function __construct(private ShipItRepoSide $side) {
@@ -37,7 +37,9 @@ final class ShipItDeleteCorruptedRepoPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $local_path = $this->side === ShipItRepoSide::SOURCE
       ? $manifest->getSourcePath()
       : $manifest->getDestinationPath();

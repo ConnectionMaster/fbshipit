@@ -1,4 +1,4 @@
-<?hh // strict
+<?hh
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Keyset, Regex, Str, Vec};
+use namespace HH\Lib\{C, Keyset, Regex, Str, Vec}; // @oss-enable
 
 final class ShipItRepoHGException extends ShipItRepoException {}
 
@@ -98,7 +98,7 @@ class ShipItRepoHG
       '--limit',
       '1',
       '-r',
-      "({$revision}::{$branch}) - {$revision}",
+      "({$revision}::'{$branch}') - {$revision}",
       '--template',
       '{node}\\n',
       ...$roots

@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Str, C, Vec, Regex};
+use namespace HH\Lib\{Str, C, Vec, Regex}; // @oss-enable
 
 final abstract class FBCommonFilters {
 
@@ -444,7 +444,7 @@ final abstract class FBCommonFilters {
       );
 
       $changeset = $changeset->withMessage(
-        $changeset->getMessage()."\n\nPulled By: ".$pulled_by,
+        $changeset->getMessage()."\n\nPulled By: ".(string)$pulled_by,
       );
     }
 

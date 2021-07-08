@@ -12,9 +12,6 @@
  */
 namespace Facebook\ShipIt;
 
-
-use type Facebook\ShipIt\Config\RepoArcanistProject;
-
 class FBShipItBranchResolutionPhase extends ShipItPhase {
 
   const type TRepoMetadata = shape(
@@ -125,13 +122,13 @@ class FBShipItBranchResolutionPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(ShipItManifest $_manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $config_object = $this->configObject;
     $branch_configs = $this->getBranchConfigs();
     if ($this->repoMetadataFile !== null) {
-      /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-      /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-      \file_put_contents(
+      \Filesystem::writeFile(
         $this->repoMetadataFile,
         \json_encode($this->getRepoMetadata()),
       );
@@ -148,7 +145,8 @@ class FBShipItBranchResolutionPhase extends ShipItPhase {
         $branch_config,
         $this->argumentParser,
       );
-      $runner->run();
+      // @lint-ignore AWAIT_IN_LOOP need sync execution
+      await $runner->genRun();
     }
   }
 }

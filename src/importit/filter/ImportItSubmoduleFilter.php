@@ -12,7 +12,7 @@
  */
 namespace Facebook\ImportIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 use type Facebook\ShipIt\{ShipItChangeset};
 
 final class ImportItSubmoduleFilter {

@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 
 type ShipItLoggerOutputFunc = (function(
   Str\SprintfFormatString,

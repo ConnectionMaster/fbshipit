@@ -12,7 +12,7 @@
  */
 namespace Facebook\ImportIt;
 
-use type Facebook\ShipIt\{ShipItShellCommand};
+use type Facebook\ShipIt\{ShipItShellCommand, ShipItLogger};
 
 final class FBRepoInitPhase extends \Facebook\ShipIt\ShipItPhase {
   private bool $allowNuke = false;
@@ -46,48 +46,35 @@ final class FBRepoInitPhase extends \Facebook\ShipIt\ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(\Facebook\ShipIt\ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    \Facebook\ShipIt\ShipItManifest $manifest,
+  ): Awaitable<void> {
     $local_path = $this->side === \Facebook\ShipIt\ShipItRepoSide::SOURCE
       ? $manifest->getSourcePath()
       : $manifest->getDestinationPath();
 
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (\is_dir($local_path)) {
+    if (PHP\is_dir($local_path)) {
       return;
     }
 
     // In case the src repo dir was specified by hand
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (\basename($local_path) !== $this->name) {
-      /* HH_IGNORE_ERROR[2049] __PHPStdLib */
+    if (\Filesystem::basename($local_path) !== $this->name) {
       ShipItLogger::err(
         'Facebook clone scripts require directory names to match repo names: '.
         "got '%s', expected '%s'\n",
-        /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-        /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-        \basename($local_path),
+        \Filesystem::basename($local_path),
         $this->name,
       );
       throw new \Facebook\ShipIt\ShipItExitException(1);
     }
 
     $command = $this->getCloneCommand();
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    $local_parent_path = \dirname($local_path);
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (!\is_dir($local_parent_path)) {
-      /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-      /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-      \mkdir($local_parent_path, 0755, /* recursive = */ true);
+    $local_parent_path = PHP\dirname($local_path);
+    if (!PHP\is_dir($local_parent_path)) {
+      PHP\mkdir($local_parent_path, 0755, /* recursive = */ true);
     }
     // Make sure that "remove stale temp file" jobs don't clean this up
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    \touch($local_parent_path);
+    PHP\touch($local_parent_path);
 
     (new ShipItShellCommand($local_parent_path, ...$command))
       ->setRetries(2)

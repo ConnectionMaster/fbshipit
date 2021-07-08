@@ -67,7 +67,9 @@ final class ShipItSaveConfigPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     invariant($this->outputFile !== null, 'impossible');
     /* HH_IGNORE_ERROR[2049] __PHPStdLib */
     /* HH_IGNORE_ERROR[4107] __PHPStdLib */

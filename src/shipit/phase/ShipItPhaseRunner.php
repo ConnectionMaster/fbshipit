@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Dict, Math, Str, Vec};
+use namespace HH\Lib\{C, Dict, Math, Str, Vec}; // @oss-enable
 
 class ShipItPhaseRunner {
   protected IShipItArgumentParser $argumentParser;
@@ -25,11 +25,12 @@ class ShipItPhaseRunner {
     $this->argumentParser = $argumentParser ?? new ShipItCLIArgumentParser();
   }
 
-  public function run(): void {
+  public async function genRun(): Awaitable<void> {
     $this->parseCLIArguments();
     try {
       foreach ($this->phases as $phase) {
-        $phase->run($this->manifest);
+        // @lint-ignore AWAIT_IN_LOOP need sync execution
+        await $phase->genRun($this->manifest);
       }
     } finally {
       if ($this->manifest->hasSourceSharedLock()) {
@@ -179,7 +180,7 @@ class ShipItPhaseRunner {
       }
 
       $description = Shapes::idx($opt, 'description');
-      if ($description !== null && !Str\is_empty($description)) {
+      if ($description !== null && $description !== '') {
         continue;
       }
 

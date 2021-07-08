@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\C;
+use namespace HH\Lib\C; // @oss-enable
 
 <<\Oncalls('open_source')>>
 final class ShipItRepoTest extends BaseTest {

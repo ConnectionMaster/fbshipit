@@ -8,7 +8,7 @@
 
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Dict;
+use namespace HH\Lib\Dict; // @oss-enable
 
 final abstract class ShipItEnv {
   private static dict<string, string> $extraEnv = dict[];

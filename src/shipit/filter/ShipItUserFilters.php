@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Str};
+use namespace HH\Lib\{C, Str}; // @oss-enable
 
 final class ShipItUserFilters {
   /** Rewrite authors that match a certain pattern.
@@ -24,7 +24,7 @@ final class ShipItUserFilters {
     classname<ShipItUserInfo> $user_info,
     string $pattern,
   ): ShipItChangeset {
-    $matches = darray[];
+    $matches = dict[];
     if (
       /* HH_FIXME[2049] __PHPStdLib */
       /* HH_FIXME[4107] __PHPStdLib */
@@ -87,7 +87,7 @@ final class ShipItUserFilters {
     ShipItChangeset $changeset,
     string $pattern,
   ): ShipItChangeset {
-    $matches = darray[];
+    $matches = dict[];
     /* HH_FIXME[2049] __PHPStdLib */
     /* HH_FIXME[4107] __PHPStdLib */
     if (\preg_match_with_matches($pattern, $changeset->getMessage(), inout $matches)) {

@@ -43,7 +43,9 @@ final class ShipItPushLfsPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  final protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     switch ($this->side) {
       case ShipItRepoSide::SOURCE:
         $lock = $manifest->getSourceSharedLock();
@@ -61,7 +63,7 @@ final class ShipItPushLfsPhase extends ShipItPhase {
       ->pushLfs($this->getLfsPullEndpoint(), $this->getLfsPushEndpoint());
   }
 
-  final private function getLfsPushEndpoint(): string {
+  private function getLfsPushEndpoint(): string {
     $github_utils_class = $this->gitHubUtilsClass;
     $pushUrl = 'https://github.com/'.
       $this->organization.
@@ -81,7 +83,7 @@ final class ShipItPushLfsPhase extends ShipItPhase {
   }
 
   // only dewey-lfs endpoint support now
-  final private function getLfsPullEndpoint(): string {
+  private function getLfsPullEndpoint(): string {
     return 'https://dewey-lfs.vip.facebook.com/lfs';
   }
 }

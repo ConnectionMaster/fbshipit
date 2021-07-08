@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Dict, Str, Vec};
+use namespace HH\Lib\{Dict, Str, Vec}; // @oss-enable
 
 final class ShipItShellCommand {
   const type TFailureHandler = (function(ShipItShellCommandResult): void);
@@ -110,10 +110,10 @@ final class ShipItShellCommand {
   }
 
   private function runOnceSynchronously(): ShipItShellCommandResult {
-    $fds = darray[
-      0 => varray['pipe', 'r'],
-      1 => varray['pipe', 'w'],
-      2 => varray['pipe', 'w'],
+    $fds = dict[
+      0 => vec['pipe', 'r'],
+      1 => vec['pipe', 'w'],
+      2 => vec['pipe', 'w'],
     ];
     $stdin = $this->stdin;
     if ($stdin === null) {
@@ -130,7 +130,7 @@ final class ShipItShellCommand {
         $this->path ?? ".",
       );
     }
-    $pipes = varray[];
+    $pipes = vec[];
     /* HH_IGNORE_ERROR[2049] __PHPStdLib */
     /* HH_IGNORE_ERROR[4107] __PHPStdLib */
     $fp = \proc_open($command, $fds, inout $pipes, $this->path, dict($env_vars));

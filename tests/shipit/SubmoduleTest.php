@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Str, C, Vec};
+use namespace HH\Lib\{Str, C, Vec}; // @oss-enable
 
 
 <<\Oncalls('open_source')>>

@@ -12,8 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Str, C};
-use type Facebook\ShipIt\Config\{FBShipItConfigClasses, RepoArcanistProject};
+use namespace HH\Lib\{Str, C}; // @oss-enable
 
 type ShipItPreviewInput = shape(
   'arcanistProject' => string,
@@ -69,12 +68,12 @@ final class FBShipItPreview {
     );
   }
 
-  final public function handleChangeset(
+  final public async function genHandleChangeset(
     string $arcanist_project,
     string $internal_branch,
     ShipItChangeset $changeset,
     ?string $patch = null,
-  ): vec<ShipItPreviewOutput> {
+  ): Awaitable<vec<ShipItPreviewOutput>> {
     try {
       $repo = RepoArcanistProject::getRepo($arcanist_project);
     // @oss-disable: } catch (\InvariantViolationException $_e) {
@@ -107,62 +106,72 @@ pull request in order to preview the full patch.';
       }
     }
 
-    $result = vec[];
-    foreach ($this->allConfigClasses as $config_object) {
-      $repo_config = $config_object->getStaticConfig();
-      // Does the repo match this open source project?
-      if ($repo !== $repo_config['internalRepo']) {
-        continue;
-      }
-      $branch_configs = Vec\filter(
-        $config_object->getBranchConfigs(),
-        $branch_config ==>
-          $branch_config->getInternalBranch() === $internal_branch,
-      );
-      foreach ($branch_configs as $branch_config) {
-        $source_roots =
-          $config_object->getManifest($branch_config)->getSourceRoots();
-        $changeset_paths = Vec\map(
-          $changeset->getDiffs(),
-          ($diff) ==> $diff['path'],
-        );
-        if (
-          !self::hasModifiedPathsForSourceRoots($changeset_paths, $source_roots)
-        ) {
-          continue;
+    return await Vec\map_async(
+      $this->allConfigClasses,
+      async $config_object ==> {
+        $repo_config = $config_object->getStaticConfig();
+        // Does the repo match this open source project?
+        if ($repo !== $repo_config['internalRepo']) {
+          return null;
         }
-        $transformed_changeset = $config_object->filterChangeset(
-          $changeset,
-          $branch_config,
+        $branch_configs = Vec\filter(
+          $config_object->getBranchConfigs(),
+          $branch_config ==>
+            $branch_config->getInternalBranch() === $internal_branch,
         );
-        // Does the changeset create any diffs on the open source project?
-        if (C\is_empty($transformed_changeset->getDiffs())) {
-          continue;
-        }
-        $commit_message = ShipItRepoGIT::getCommitMessage(
-          $transformed_changeset,
-        );
-        if ($patch !== null) {
-          $transformed_patch = ShipItRepoGIT::renderPatch(
-            $transformed_changeset,
-          );
-        } else {
-          $transformed_patch = null;
-        }
-        if ($hack_patch_override !== null) {
-          $transformed_patch = $hack_patch_override;
-        }
-        $result[] = shape(
-          'changeset' => $transformed_changeset->toData(),
-          'githubOrg' => $repo_config['githubOrg'],
-          'githubProject' => $repo_config['githubProject'],
-          'commitMessage' => $commit_message,
-          'externalBranch' => $branch_config->getExternalBranch(),
-          'patch' => $transformed_patch,
-          'error' => $error,
-        );
-      }
-    }
-    return $result;
+        return await Vec\map_async(
+          $branch_configs,
+          async $branch_config ==> {
+            $source_roots =
+              $config_object->getManifest($branch_config)->getSourceRoots();
+            $changeset_paths = Vec\map(
+              $changeset->getDiffs(),
+              ($diff) ==> $diff['path'],
+            );
+            if (
+              !self::hasModifiedPathsForSourceRoots(
+                $changeset_paths,
+                $source_roots,
+              )
+            ) {
+              return null;
+            }
+            $transformed_changeset = await $config_object->genFilterChangeset(
+              $changeset,
+              $branch_config,
+            );
+            // Does the changeset create any diffs on the open source project?
+            if (C\is_empty($transformed_changeset->getDiffs())) {
+              return null;
+            }
+            $commit_message = ShipItRepoGIT::getCommitMessage(
+              $transformed_changeset,
+            );
+            if ($patch !== null) {
+              $transformed_patch = ShipItRepoGIT::renderPatch(
+                $transformed_changeset,
+              );
+            } else {
+              $transformed_patch = null;
+            }
+            if ($hack_patch_override !== null) {
+              $transformed_patch = $hack_patch_override;
+            }
+            return shape(
+              'changeset' => $transformed_changeset->toData(),
+              'githubOrg' => $repo_config['githubOrg'],
+              'githubProject' => $repo_config['githubProject'],
+              'commitMessage' => $commit_message,
+              'externalBranch' => $branch_config->getExternalBranch(),
+              'patch' => $transformed_patch,
+              'error' => $error,
+            );
+          },
+        )
+          |> Vec\filter_nulls($$);
+      },
+    )
+      |> Vec\filter_nulls($$)
+      |> Vec\flatten($$);
   }
 }

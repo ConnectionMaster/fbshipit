@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Regex, Str, Vec};
+use namespace HH\Lib\{C, Regex, Str, Vec}; // @oss-enable
 
 class ShipItException extends \Exception {}
 
@@ -58,45 +58,46 @@ final class ShipItSync {
     return $changesets;
   }
 
-  private function getFilteredChangesets(): vec<ShipItChangeset> {
+  private async function genFilteredChangesets(
+  ): Awaitable<vec<ShipItChangeset>> {
     $manifest = $this->manifest;
     $skipped_ids = $this->syncConfig->getSkippedSourceCommits();
-    $filter = $this->syncConfig->getFilter();
+    $gen_filter = $this->syncConfig->getFilter();
 
-    $changesets = vec[];
-    foreach ($this->getSourceChangesets() as $changeset) {
-      $skip_match = null;
-      foreach ($skipped_ids as $skip_id) {
-        if (Str\search($changeset->getID(), $skip_id) === 0) {
-          $skip_match = $skip_id;
-          break;
+    return await Vec\map_async(
+      $this->getSourceChangesets(),
+      async $changeset ==> {
+        $skip_match = null;
+        foreach ($skipped_ids as $skip_id) {
+          if (Str\search($changeset->getID(), $skip_id) === 0) {
+            $skip_match = $skip_id;
+            break;
+          }
         }
-      }
-      if ($skip_match !== null) {
-        $changesets[] = $changeset
-          ->withDiffs(vec[])
-          ->withDebugMessage(
-            'USER SKIPPED COMMIT: id "%s" matches "%s"',
-            $changeset->getID(),
-            $skip_match,
-          );
-        continue;
-      }
+        if ($skip_match !== null) {
+          return $changeset
+            ->withDiffs(vec[])
+            ->withDebugMessage(
+              'USER SKIPPED COMMIT: id "%s" matches "%s"',
+              $changeset->getID(),
+              $skip_match,
+            );
+        }
 
-      $changeset = $filter($manifest, $changeset);
-      if (!$this->isValidChangeToSync($changeset)) {
-        $changesets[] = $changeset->withDebugMessage(
-          'SKIPPED COMMIT: no matching files',
-        );
-      } else {
-        $changesets[] = self::addTrackingData($manifest, $changeset);
-      }
-    }
-    return $changesets;
+        $changeset = await $gen_filter($manifest, $changeset);
+        if (!$this->isValidChangeToSync($changeset)) {
+          return $changeset->withDebugMessage(
+            'SKIPPED COMMIT: no matching files',
+          );
+        } else {
+          return self::addTrackingData($manifest, $changeset);
+        }
+      },
+    );
   }
 
-  public function run(): void {
-    $changesets = $this->getFilteredChangesets();
+  public async function genRun(): Awaitable<void> {
+    $changesets = await $this->genFilteredChangesets();
     if (C\is_empty($changesets)) {
       ShipItLogger::out("  No new commits to sync.\n");
       $this->maybeLogStats(vec[], vec[]);

@@ -13,7 +13,7 @@
 
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Str, Vec};
+use namespace HH\Lib\{Str, Vec}; // @oss-enable
 
 /**
  * Comments or uncomments specially marked lines.

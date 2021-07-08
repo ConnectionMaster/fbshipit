@@ -12,7 +12,7 @@
  */
 namespace Facebook\ImportIt;
 
-use namespace HH\Lib\{C, Dict, Str};
+use namespace HH\Lib\{C, Dict, Str}; // @oss-enable
 
 abstract final class ImportItPathFilters {
   /**

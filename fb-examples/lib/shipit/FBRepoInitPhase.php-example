@@ -52,47 +52,35 @@ final class FBRepoInitPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $local_path = $this->side === ShipItRepoSide::SOURCE
       ? $manifest->getSourcePath()
       : $manifest->getDestinationPath();
 
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (\is_dir($local_path)) {
+    if (PHP\is_dir($local_path)) {
       return;
     }
 
     // In case the src repo dir was specified by hand
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (\basename($local_path) !== $this->name) {
+    if (\Filesystem::basename($local_path) !== $this->name) {
       ShipItLogger::err(
         'Facebook clone scripts require directory names to match repo names: '.
         "got '%s', expected '%s'\n",
-        /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-        /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-        \basename($local_path),
+        \Filesystem::basename($local_path),
         $this->name,
       );
       throw new ShipItExitException(1);
     }
 
     $command = self::getCloneCommand($this->name);
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    $local_parent_path = \dirname($local_path);
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    if (!\is_dir($local_parent_path)) {
-      /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-      /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-      \mkdir($local_parent_path, 0755, /* recursive = */ true);
+    $local_parent_path = PHP\dirname($local_path);
+    if (!PHP\is_dir($local_parent_path)) {
+      PHP\mkdir($local_parent_path, 0755, /* recursive = */ true);
     }
     // Make sure that "remove stale temp file" jobs don't clean this up
-    /* HH_IGNORE_ERROR[2049] __PHPStdLib */
-    /* HH_IGNORE_ERROR[4107] __PHPStdLib */
-    \touch($local_parent_path);
+    PHP\touch($local_parent_path);
 
     (new ShipItShellCommand($local_parent_path, ...$command))
       ->setRetries(2)
@@ -125,8 +113,8 @@ final class FBRepoInitPhase extends ShipItPhase {
         return vec[
           '/usr/local/bin/hg-clone-www',
           '--no-working-dir',
-          '--simple',
           '--no-cloud-rejoin',
+          '--simple',
         ];
       case 'pse-demos':
         return vec[
@@ -155,13 +143,6 @@ final class FBRepoInitPhase extends ShipItPhase {
           'ssh://projects.git-ro.vip.facebook.com/data/gitrepos/infer',
           'infer-fb',
         ];
-      case 'buck_internal':
-        return vec[
-          '/usr/bin/git',
-          'clone',
-          'ssh://projects.git.vip.facebook.com/data/gitrepos/buck.git',
-          'buck_internal',
-        ];
       case 'llvm-bolt':
         return vec[
           '/usr/bin/git',
@@ -170,6 +151,13 @@ final class FBRepoInitPhase extends ShipItPhase {
           'facebook/bolt',
           'ssh://projects.git-ro.vip.facebook.com/data/gitrepos/llvm/llvm.git',
           'llvm-bolt',
+        ];
+      case 'openbic':
+        return vec[
+          '/usr/bin/git',
+          'clone',
+          'ssh://projects.git-ro.vip.facebook.com/data/gitrepos/openbic.git',
+          'openbic',
         ];
       case 'meta-openbmc':
         return vec[
@@ -238,19 +226,21 @@ final class FBRepoInitPhase extends ShipItPhase {
           'ssh://git.vip.facebook.com/data/gitrepos/fbwin-gameroom.git',
           'fbwin-gameroom',
         ];
-      case 'fb-vscode':
-        return vec[
-          '/usr/bin/git',
-          'clone',
-          'ssh://git-ro.vip.facebook.com/data/gitrepos/fb-vscode.git',
-          'fb-vscode',
-        ];
       case 'WABIZ':
         return vec[
           '/usr/bin/git',
           'clone',
           'ssh://git.vip.facebook.com/data/gitrepos/whatsapp/biz.git',
           'WABIZ',
+        ];
+      case 'cinder':
+        return vec[
+          '/usr/bin/git',
+          'clone',
+          'ssh://git.vip.facebook.com/data/gitrepos/cpython',
+          '-b',
+          'cinder/3.8',
+          'cinder',
         ];
       /* added due to nonexhaustive switch */
       default:

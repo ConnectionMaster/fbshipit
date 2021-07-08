@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 
 final class ShipItSyncPhase extends ShipItPhase {
   private ?string $firstCommit = null;
@@ -109,7 +109,9 @@ final class ShipItSyncPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $sync = (
       new ShipItSyncConfig(
         $manifest->getSourceRoots(),
@@ -125,6 +127,6 @@ final class ShipItSyncPhase extends ShipItPhase {
       ->withAllowEmptyCommits($this->allowEmptyCommit)
       ->withShouldDoSubmodules($this->shouldDoSubmodules);
 
-    (new ShipItSync($manifest, $sync))->run();
+    await (new ShipItSync($manifest, $sync))->genRun();
   }
 }

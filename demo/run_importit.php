@@ -35,7 +35,7 @@ final class ImportDemoProject {
       );
   }
 
-  public static function cliMain(): void {
+  public static async function genCliMain(): Awaitable<void> {
     $manifest = new ShipItManifest(
       /* default working dir = */ '/var/tmp/shipit',
       /* source repo name */ 'fbshipit-target',
@@ -60,7 +60,7 @@ final class ImportDemoProject {
     ];
 
     try {
-      (new ShipItPhaseRunner($manifest, $phases))->run();
+      await (new ShipItPhaseRunner($manifest, $phases))->genRun();
     } catch (ShipItExitException $e) {
       exit($e->exitCode);
     }
@@ -68,8 +68,8 @@ final class ImportDemoProject {
 }
 
 <<__EntryPoint>>
-async function mainAsync(): Awaitable<void> {
+async function gen_main(): Awaitable<void> {
   require_once(\dirname(__DIR__).'/vendor/autoload.hack'); // @oss-enable
   \Facebook\AutoloadMap\initialize(); // @oss-enable
-  ImportDemoProject::cliMain();
+  await ImportDemoProject::genCliMain();
 }

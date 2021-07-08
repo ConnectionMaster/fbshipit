@@ -29,7 +29,7 @@ final class DemoSourceRepoInitPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  public function runImpl(ShipItManifest $manifest): void {
+  public async function genRunImpl(ShipItManifest $manifest): Awaitable<void> {
     $local_path = $manifest->getSourcePath();
 
     /* HH_FIXME[2049] __PHPStdLib */

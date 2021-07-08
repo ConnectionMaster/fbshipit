@@ -1,4 +1,4 @@
-<?hh // strict
+<?hh
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Regex, Str};
+use namespace HH\Lib\{C, Regex, Str}; // @oss-enable
 
 class ShipItRepoException extends \Exception {
   public function __construct(?ShipItRepo $repo, string $message) {
@@ -190,7 +190,6 @@ abstract class ShipItRepo {
    */
   public static function parsePatch(string $patch): Iterator<string> {
     $contents = '';
-    $matches = darray[];
 
     $minus_lines = 0;
     $plus_lines = 0;

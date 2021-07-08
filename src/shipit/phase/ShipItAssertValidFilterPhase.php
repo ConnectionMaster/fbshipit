@@ -12,13 +12,13 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Str};
+use namespace HH\Lib\{C, Str}; // @oss-enable
 
 final class ShipItAssertValidFilterPhase extends ShipItPhase {
   const TEST_FILE_NAME = 'shipit_test_file.txt';
 
   public function __construct(
-    private (function(ShipItChangeset): ShipItChangeset) $filter,
+    private (function(ShipItChangeset): Awaitable<ShipItChangeset>) $genFilter,
     private Container<string> $strippedFiles = vec[],
   ) {}
 
@@ -39,13 +39,17 @@ final class ShipItAssertValidFilterPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  protected function runImpl(ShipItManifest $manifest): void {
-    $this->assertValid($manifest->getSourceRoots());
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
+    await $this->genAssertValid($manifest->getSourceRoots());
   }
 
   // Public for testing
-  public function assertValid(keyset<string> $source_roots): void {
-    $filter = $this->filter;
+  public async function genAssertValid(
+    keyset<string> $source_roots,
+  ): Awaitable<void> {
+    $gen_filter = $this->genFilter;
     $allows_all = false;
     foreach ($source_roots as $root) {
       $test_file = $root.'/'.self::TEST_FILE_NAME;
@@ -54,7 +58,8 @@ final class ShipItAssertValidFilterPhase extends ShipItPhase {
         ->withDiffs(vec[
           shape('path' => $test_file, 'body' => 'junk'),
         ]);
-      $changeset = $filter($changeset);
+      // @lint-ignore AWAIT_IN_LOOP Need sync
+      $changeset = await $gen_filter($changeset);
       if (C\count($changeset->getDiffs()) !== 1) {
         $test_file_is_stripped = ShipItPathFilters::matchesAnyPattern(
           $test_file,
@@ -82,7 +87,7 @@ final class ShipItAssertValidFilterPhase extends ShipItPhase {
       ->withDiffs(vec[
         shape('path' => $path, 'body' => 'junk'),
       ]);
-    $changeset = $filter($changeset);
+    $changeset = await $gen_filter($changeset);
     invariant(
       C\is_empty($changeset->getDiffs()),
       'Path "%s" is not in a sourceRoot, but passes filter',

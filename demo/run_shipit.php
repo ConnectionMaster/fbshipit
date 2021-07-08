@@ -28,7 +28,7 @@ final class ShipDemoProject {
       |> ShipItPathFilters::moveDirectories($$, self::getPathMappings());
   }
 
-  public static function cliMain(): void {
+  public static async function genCliMain(): Awaitable<void> {
     $manifest = new ShipItManifest(
       /* default working dir = */ '/var/tmp/shipit',
       /* source repo name */ 'fbshipit',
@@ -47,7 +47,7 @@ final class ShipDemoProject {
         DemoGitHubUtils::class,
       ),
       new ShipItCreateNewRepoPhase(
-        ($changeset) ==> self::filterChangeset($changeset),
+        async ($changeset) ==> self::filterChangeset($changeset),
         shape(
           'name' => DemoGitHubUtils::$committerName,
           'email' => DemoGitHubUtils::$committerEmail,
@@ -55,13 +55,13 @@ final class ShipDemoProject {
       ),
       new ShipItPullPhase(ShipItRepoSide::DESTINATION),
       new ShipItSyncPhase(
-        ($config, $changeset) ==> self::filterChangeset($changeset),
+        async ($_config, $changeset) ==> self::filterChangeset($changeset),
       ),
       new ShipItPushPhase(),
     ];
 
     try {
-      (new ShipItPhaseRunner($manifest, $phases))->run();
+      await (new ShipItPhaseRunner($manifest, $phases))->genRun();
     } catch (ShipItExitException $e) {
       exit($e->exitCode);
     }
@@ -69,8 +69,8 @@ final class ShipDemoProject {
 }
 
 <<__EntryPoint>>
-async function mainAsync(): Awaitable<void> {
+async function gen_main(): Awaitable<void> {
   require_once(\dirname(__DIR__).'/vendor/autoload.hack'); // @oss-enable
   \Facebook\AutoloadMap\initialize(); // @oss-enable
-  ShipDemoProject::cliMain();
+  await ShipDemoProject::genCliMain();
 }

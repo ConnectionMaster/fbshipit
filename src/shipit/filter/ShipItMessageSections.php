@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Dict, Str};
+use namespace HH\Lib\{C, Dict, Str}; // @oss-enable
 
 /** Utility class for commit messages with sections preceded by "Header: ".
  *
@@ -61,7 +61,11 @@ final class ShipItMessageSections {
               $value = Str\trim(Str\slice($value, Str\length($section) + 1));
             }
           }
-          $sections[$section] = $value;
+          if (C\contains_key($sections, $section)) {
+            $sections[$section] .= $value;
+          } else {
+            $sections[$section] = $value;
+          }
           continue;
         }
       }

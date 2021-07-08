@@ -32,7 +32,9 @@ final class ShipItPullPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     switch ($this->side) {
       case ShipItRepoSide::SOURCE:
         $lock = $manifest->getSourceSharedLock();

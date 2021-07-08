@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{C, Str};
+use namespace HH\Lib\{C, Str}; // @oss-enable
 
 enum ShipItDiffOperation: string {
   CHANGE = 'change';

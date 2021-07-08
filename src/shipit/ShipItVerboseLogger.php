@@ -8,7 +8,7 @@
 
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 
 final class ShipItVerboseLogger {
   public function __construct(private bool $verbose) {

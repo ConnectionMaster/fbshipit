@@ -16,7 +16,9 @@ abstract class ShipItPhase {
   private bool $skipped = false;
 
   abstract public function getReadableName(): string;
-  abstract protected function runImpl(ShipItManifest $manifest): void;
+  abstract protected function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void>;
 
   public function getCLIArguments(): vec<ShipItCLIArgument> {
     return vec[];
@@ -34,7 +36,9 @@ abstract class ShipItPhase {
     $this->skipped = false;
   }
 
-  final public function run(ShipItManifest $manifest): void {
+  final public async function genRun(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $logger = new ShipItVerboseLogger($manifest->isVerboseEnabled());
 
     if ($this->isSkipped()) {
@@ -43,7 +47,7 @@ abstract class ShipItPhase {
     }
     $logger->out("Starting phase: %s", $this->getReadableName());
     try {
-      $this->runImpl($manifest);
+      await $this->genRunImpl($manifest);
     } catch (ShipItExitException $e) {
       $logger->out("Finished phase: %s", $this->getReadableName());
       // This is used to signal that ShipIt is exiting, not a reportable

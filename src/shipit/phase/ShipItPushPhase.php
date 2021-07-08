@@ -30,7 +30,9 @@ final class ShipItPushPhase extends ShipItPhase {
   }
 
   <<__Override>>
-  final protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    ShipItManifest $manifest,
+  ): Awaitable<void> {
     $repo = ShipItRepo::open(
       $manifest->getDestinationSharedLock(),
       $manifest->getDestinationPath(),

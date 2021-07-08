@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\Keyset;
+use namespace HH\Lib\Keyset; // @oss-enable
 
 <<\Oncalls('open_source')>>
 final class RenameFileTest extends ShellTest {

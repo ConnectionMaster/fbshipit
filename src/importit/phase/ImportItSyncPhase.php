@@ -12,7 +12,7 @@
  */
 namespace Facebook\ImportIt;
 
-use namespace HH\Lib\Str;
+use namespace HH\Lib\Str; // @oss-enable
 use type Facebook\ShipIt\{
   ShipItChangeset,
   ShipItDestinationRepo,
@@ -27,11 +27,19 @@ final class ImportItSyncPhase extends \Facebook\ShipIt\ShipItPhase {
   private ?string $pullRequestNumber;
   private bool $skipPullRequest = false;
   private bool $applyToLatest = false;
+  private ?string $applyToTarget = null;
   private bool $shouldDoSubmodules = true;
 
   public function __construct(
     private (function(ShipItChangeset): ShipItChangeset) $filter,
   ) {
+  }
+
+  private function assertApplyToMutualExclusivity(): void {
+    invariant(
+      $this->applyToTarget is null || $this->applyToLatest === false,
+      'apply-to-latest and apply-to-target cannot be used at the same time',
+    );
   }
 
   <<__Override>>
@@ -81,10 +89,22 @@ final class ImportItSyncPhase extends \Facebook\ShipIt\ShipItPhase {
         'long_name' => 'apply-to-latest',
         'description' => 'Apply the PR patch to the latest internal revision, '.
           'instead of on the internal commit that matches the '.
-          'PR base.',
+          'PR base. Mutually exclusive with apply-to-target',
         'write' => $_ ==> {
           $this->applyToLatest = true;
+          $this->assertApplyToMutualExclusivity();
           return $this->applyToLatest;
+        },
+      ),
+      shape(
+        'long_name' => 'apply-to-target::',
+        'description' => 'Apply the PR patch to the given target revision, '.
+          'instead of on the internal commit that matches the '.
+          'PR base. Mutually exclusive with apply-to-latest',
+        'write' => $x ==> {
+          $this->applyToTarget = $x;
+          $this->assertApplyToMutualExclusivity();
+          return $this->applyToTarget;
         },
       ),
       shape(
@@ -99,9 +119,14 @@ final class ImportItSyncPhase extends \Facebook\ShipIt\ShipItPhase {
   }
 
   <<__Override>>
-  final protected function runImpl(ShipItManifest $manifest): void {
+  protected async function genRunImpl(
+    \Facebook\ShipIt\ShipItManifest $manifest,
+  ): Awaitable<void> {
     list($changeset, $destination_base_rev) =
       $this->getSourceChangsetAndDestinationBaseRevision($manifest);
+    if ($this->applyToTarget is nonnull) {
+      $destination_base_rev = $this->applyToTarget;
+    }
     $this->applyPatchToDestination(
       $manifest,
       $changeset,
@@ -228,6 +253,6 @@ final class ImportItSyncPhase extends \Facebook\ShipIt\ShipItPhase {
   private function getPatchLocationForChangeset(
     ShipItChangeset $changeset,
   ): string {
-    return $this->patchesDirectory.'/'.$changeset->getID().'.patch';
+    return (string)$this->patchesDirectory.'/'.$changeset->getID().'.patch';
   }
 }

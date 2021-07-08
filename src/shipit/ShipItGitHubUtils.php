@@ -12,7 +12,7 @@
  */
 namespace Facebook\ShipIt;
 
-use namespace HH\Lib\{Regex, Str};
+use namespace HH\Lib\{Regex, Str}; // @oss-enable
 
 type ShipItGitHubCredentials = shape(
   'name' => string,
@@ -51,8 +51,6 @@ abstract class ShipItGitHubUtils {
   ): void {
     $git_config = (string $key, string $value) ==>
       new ShipItShellCommand($local_path, 'git', 'config', $key, $value);
-
-    $origin = null;
 
     switch ($transport) {
       case ShipItTransport::SSH:
